@@ -3,76 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline Family Syte</title>
+    <title>CyberOS Adaptive Hub</title>
     <style>
         :root {
-            --primary: #00f2ff;
-            --glass: rgba(255, 255, 255, 0.05);
-            --bg: #050505;
+            --p: #00f2ff; --bg: #010101; --card: rgba(255,255,255,0.05); --text: #fff;
         }
-        body {
-            background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; overflow-x: hidden; background-image: radial-gradient(circle at 50% 50%, #111 0%, #050505 100%);
+        /* Светлая тема (Apple Style) */
+        body.light {
+            --p: #0071e3; --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f;
         }
-        nav {
-            display: flex; justify-content: center; gap: 10px; padding: 20px; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 1000; flex-wrap: wrap; border-bottom: 1px solid var(--glass);
-        }
-        nav button {
-            background: var(--glass); border: 1px solid var(--primary); color: var(--primary); padding: 8px 16px; border-radius: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s;
-        }
-        nav button:hover { background: var(--primary); color: #000; }
-        section {
-            display: none; padding: 40px 20px; max-width: 1200px; margin: 0 auto; animation: slideUp 0.6s ease-out;
-        }
+        
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; transition: 0.5s; overflow: hidden; }
+        #canvas { position: fixed; inset: 0; z-index: -1; opacity: 0.3; display: none; }
+        #canvas.active { display: block; }
+
+        nav { display: flex; gap: 5px; padding: 10px; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-bottom: 1px solid var(--p); overflow-x: auto; }
+        nav button { background: transparent; border: 1px solid var(--p); color: var(--p); padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        
+        section { display: none; height: calc(100vh - 60px); padding: 20px; box-sizing: border-box; overflow-y: auto; }
         section.active { display: block; }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(50px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .glass-card {
-            background: var(--glass); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); margin-bottom: 20px;
-        }
-        /* Приватные заметки */
-        textarea {
-            width: 100%; height: 300px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--primary); color: white; padding: 15px; border-radius: 10px; resize: none; box-sizing: border-box;
-        }
-        .footer {
-            margin-top: 50px;
-            text-align: center;
-            font-size: 14px;
-            color: #777;
-        }
+
+        .card { background: var(--card); border: 1px solid rgba(128,128,128,0.2); padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        
+        select, button.action { width: 100%; padding: 12px; margin-top: 10px; border-radius: 10px; border: 1px solid var(--p); background: transparent; color: var(--text); }
+        .status { font-size: 12px; color: var(--p); text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
-<body>
+<body id="b">
+
+<canvas id="canvas"></canvas>
 
 <nav>
-    <button onclick="show('home')">Инфо</button>
-    <button onclick="show('files')">Файлы</button>
-    <button onclick="show('games')">Игры</button>
-    <button onclick="show('clicker')">Кликер</button>
-    <button onclick="show('misc')">Карты & Время</button>
-    <button onclick="show('notes')">Заметки</button>
+    <button onclick="st('home')">CORE</button>
+    <button onclick="st('radar')">RADAR</button>
+    <button onclick="st('settings')">SETTINGS</button>
 </nav>
 
+<!-- CORE -->
 <section id="home" class="active">
-    <div class="glass-card">
-        <h1 style="color: var(--primary);">Offline Family Syte</h1>
-        <p>Привет! Я — твой автономный хаб.</p>
-    </div>
-    <div class="footer">
-        Данный сайт доступен в режиме оффлайн, некоторые функции онлайн. Сделано Никитой.
+    <div class="card">
+        <div class="status" id="sys-time">00:00:00</div>
+        <h1 id="greet">SYSTEM READY</h1>
+        <p>Adaptive Mode: <span id="mode-stat">Manual</span></p>
+        <div id="weather">Сканирование атмосферы...</div>
     </div>
 </section>
 
-<!-- ... (Остальные секции Файлы, Игры, Кликер, Разное, Заметки - код тот же) ... -->
-<!-- ВСЕ ПРЕДЫДУЩИЕ СЕКЦИИ ДОЛЖНЫ БЫТЬ ВСТАВЛЕНЫ ЗДЕСЬ -->
-<!-- Убедитесь, что все предыдущие секции вставлены между тегом </section> выше и тегом <script> ниже -->
+<!-- RADAR -->
+<section id="radar">
+    <iframe id="ifr" src="https://www.flightradar24.com" style="width:100%; height:80vh; border:none; border-radius:20px;"></iframe>
+</section>
 
+<!-- SETTINGS -->
+<section id="settings">
+    <div class="card">
+        <h3>КОНФИГУРАЦИЯ СИСТЕМЫ</h3>
+        
+        <label>Внешний вид:</label>
+        <select id="theme-select" onchange="applySettings()">
+            <option value="dark">Dark (Cyber)</option>
+            <option value="light">Light (Apple)</option>
+            <option value="auto">Adaptive (By Time)</option>
+        </select>
+
+        <label style="display:block; margin-top:20px;">Часовой пояс:</label>
+        <select id="tz-select" onchange="applySettings()">
+            <option value="Europe/Minsk">Минск / Москва (GMT+3)</option>
+            <option value="Asia/Dubai">Дубай (GMT+4)</option>
+            <option value="America/New_York">Нью-Йорк (GMT-5)</option>
+            <option value="Asia/Tokyo">Токио (GMT+9)</option>
+        </select>
+
+        <label style="display:block; margin-top:20px;">Эффекты:</label>
+        <button class="action" id="viz-btn" onclick="toggleViz()">Включить Soundscape: OFF</button>
+    </div>
+</section>
 
 <script>
-    // --- ОБЯЗАТЕЛЬНО ВСТАВЬТЕ СЮДА ВСЕ ПРЕДЫДУЩИЕ СКРИПТЫ ИГР, ЧАСОВ, ФАЙЛОВ И Т.Д. ---
-    // Например, функции show(), hit(), renderFiles(), initMinesweeper(), updateClocks(), renderCalendar(), saveNotes().
-</script>
+    let vizEnabled = false;
 
+    function st(id) {
+        document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function toggleViz() {
+        vizEnabled = !vizEnabled;
+        const c = document.getElementById('canvas');
+        const b = document.getElementById('viz-btn');
+        if(vizEnabled) { c.classList.add('active'); b.innerText = "Soundscape: ON"; }
+        else { c.classList.remove('active'); b.innerText = "Soundscape: OFF"; }
+    }
+
+    function applySettings() {
+        const theme = document.getElementById('theme-select').value;
+        const tz = document.getElementById('tz-select').value;
+        const body = document.getElementById('b');
+        
+        localStorage.setItem('hub_theme', theme);
+        localStorage.setItem('hub_tz', tz);
+
+        // Логика адаптивной темы
+        if (theme === 'auto') {
+            const hour = new Date(new Date().toLocaleString("en-US", {timeZone: tz})).getHours();
+            if (hour >= 7 && hour < 19) body.className = 'light';
+            else body.className = '';
+            document.getElementById('mode-stat').innerText = 'Adaptive';
+        } else if (theme === 'light') {
+            body.className = 'light';
+            document.getElementById('mode-stat').innerText = 'Manual Light';
+        } else {
+            body.className = '';
+            document.getElementById('mode-stat').innerText = 'Manual Dark';
+        }
+    }
+
+    // Живое время и обновление
+    setInterval(() => {
+        const tz = localStorage.getItem('hub_tz') || 'Europe/Minsk';
+        const now = new Date();
+        document.getElementById('sys-time').innerText = now.toLocaleTimeString('ru-RU', {timeZone: tz});
+        
+        // Авто-обновление темы каждую минуту, если стоит Auto
+        if(document.getElementById('theme-select').value === 'auto') applySettings();
+    }, 1000);
+
+    // Фоновая анимация
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    function draw() {
+        if(vizEnabled) {
+            ctx.fillStyle = 'rgba(0,0,0,0.1)'; ctx.fillRect(0,0,canvas.width, canvas.height);
+            ctx.fillStyle = '#00f2ff';
+            for(let i=0; i<5; i++) ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 2, 2);
+        }
+        requestAnimationFrame(draw);
+    }
+    draw();
+
+    // Загрузка настроек
+    window.onload = () => {
+        document.getElementById('theme-select').value = localStorage.getItem('hub_theme') || 'auto';
+        document.getElementById('tz-select').value = localStorage.getItem('hub_tz') || 'Europe/Minsk';
+        applySettings();
+    };
+</script>
 </body>
 </html>
